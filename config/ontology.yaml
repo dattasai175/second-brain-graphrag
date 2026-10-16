@@ -1,0 +1,36 @@
+# Closed vocabulary for entity/relation extraction. Closed lists keep the graph from
+# fragmenting into hundreds of near-synonym types and predicates. Anything the model
+# invents is mapped to `Concept` / `related_to` (with the original wording kept in the
+# relation description) so nothing is silently lost.
+
+entity_types:
+  - Person
+  - Organization
+  - Project
+  - Concept
+  - Tool
+  - Place
+  - Event
+  - Decision
+  - Task
+  - Topic
+
+predicates:
+  - works_at
+  - works_on
+  - authored
+  - owns
+  - manages
+  - reports_to
+  - member_of
+  - part_of
+  - uses
+  - depends_on
+  - located_in
+  - created
+  - acquired
+  - founded
+  - decided
+  - attended
+  - mentions
+  - related_to

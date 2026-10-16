@@ -1,0 +1,16 @@
+# Golden set for retrieval evaluation. One JSON object per line; lines starting with # are ignored.
+#
+# Fields:
+#   id                 unique id
+#   question           the question as you would ask it
+#   type               lookup | multi_hop | global | unanswerable   (metrics are reported per type)
+#   gold               list of evidence spans the answer needs: {"path": "<relative note path>",
+#                      "quote": "<exact text from that note>"}. multi_hop questions list >= 2 spans.
+#                      Anchor on path + quote, never on chunk ids (they change when you re-chunk).
+#   reference_answer   short expected answer (used by the Phase 2 answer-quality judges)
+#   answerable         false for questions the notes cannot answer (tests abstention; excluded from
+#                      retrieval metrics; leave "gold" empty)
+#
+# Suggested mix to start: 10 lookup, 10 multi_hop, 5 global, 5 unanswerable (30 questions).
+# Example line:
+# {"id": "q001", "question": "Who owns Project Atlas?", "type": "lookup", "gold": [{"path": "projects/Project Atlas.md", "quote": "owned by Priya Raman"}], "reference_answer": "Priya Raman", "answerable": true}

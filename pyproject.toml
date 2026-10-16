@@ -1,0 +1,36 @@
+# Workspace root: pins the environment (the package itself lives in src/, see src/pyproject.toml
+# for why it is a separate, non-editable project) plus dev tooling and test/lint configuration.
+[project]
+name = "second-brain"
+version = "0.1.0"
+description = "Adaptive personal knowledge-graph RAG: local-first hybrid vector + graph retrieval over your own documents"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["second-brain-core"]
+
+[project.optional-dependencies]
+# Layout-aware PDF parsing via Docling (pulls in torch; large). Without it PDFs use pypdf.
+pdf = ["second-brain-core[pdf]"]
+# Local sentence-transformers embeddings + cross-encoder reranker (pulls in torch).
+ml = ["second-brain-core[ml]"]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+second-brain-core = { path = "src", editable = false }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "eval"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "B905"]

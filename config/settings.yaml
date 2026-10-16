@@ -1,0 +1,73 @@
+# Adaptive Personal Knowledge Graph RAG: runtime settings.
+# Relative paths resolve against the project root (the folder that contains config/).
+# Override the file with `--config PATH` or the BRAIN_CONFIG environment variable.
+
+data_dir: .brain            # SQLite database lives at <data_dir>/brain.db
+ontology: config/ontology.yaml
+
+llm:                        # local generation / extraction / grading via Ollama
+  base_url: http://localhost:11434
+  model: llama3.1:8b        # swap for the best local 14-30B instruct model you run
+  extraction_model: null    # optional: a different (e.g. smaller/faster) model for bulk extraction
+  temperature: 0.0
+  num_ctx: 8192
+  timeout_s: 300
+
+embedding:
+  backend: ollama           # ollama | sentence_transformers | hash (offline smoke tests only)
+  model: qwen3-embedding:0.6b   # run once: ollama pull qwen3-embedding:0.6b
+  base_url: null            # defaults to llm.base_url
+  batch_size: 32
+  # Qwen3-Embedding is instruction-aware on the query side only. For nomic-embed-text use
+  # query_prefix "search_query: " and doc_prefix "search_document: "; BGE-M3 needs none.
+  query_prefix: "Instruct: Given a question, retrieve passages from personal notes that answer it\nQuery: "
+  doc_prefix: ""
+
+rerank:
+  backend: auto             # auto (cross-encoder if sentence-transformers is installed) | none | cross_encoder
+  model: BAAI/bge-reranker-v2-m3
+
+chunking:
+  target_tokens: 600
+  overlap_tokens: 60
+  min_tokens: 80
+  max_tokens: 900
+  contextual_prefix: heading   # heading (title > section path) | llm (one short LLM call per chunk) | none
+
+extraction:
+  enabled: true
+  gleaning: true            # one extra "what did you miss?" pass per chunk
+  workers: 2                # concurrent LLM calls during ingest
+  adjudicate: true          # LLM decides borderline entity merges (else only near-identical ones merge)
+  candidate_threshold: 0.86 # embedding similarity that makes two entities merge candidates
+  auto_merge_threshold: 0.97
+  max_chunk_chars: 6000
+
+graph:
+  ppr_damping: 0.6
+  chunk_seed_weight: 0.3    # share of the PPR restart mass given to dense-hit chunks (rest: linked entities)
+  mention_weight: 1.0
+  doc_node_weight: 0.3      # chunk <-> document pseudo-node edges (links notes of the same file)
+  hub_penalty: true         # down-weight edges into high-degree entities
+  link_min_sim: 0.55        # min embedding similarity for query-entity linking
+  max_seeds: 8
+
+retrieval:
+  dense_k: 50
+  bm25_k: 50
+  graph_k: 50
+  rerank_candidates: 40
+  final_k: 8
+  rrf_k: 60
+  channel_weights:          # weighted RRF, per query type
+    lookup:    {dense: 1.0, bm25: 1.0, graph: 0.6}
+    multi_hop: {dense: 1.0, bm25: 0.7, graph: 1.5}
+    global:    {dense: 1.0, bm25: 0.7, graph: 1.0}
+
+sensitivity:                # stored per document now; enforced when cloud routing arrives (Phase 2)
+  default: private
+  rules: []                 # e.g. [{glob: "public/**", label: shareable}]
+
+ingest:
+  extensions: [".md", ".markdown", ".txt", ".pdf"]
+  ignore: [".git", ".obsidian", ".brain", ".venv", "node_modules", "__pycache__"]

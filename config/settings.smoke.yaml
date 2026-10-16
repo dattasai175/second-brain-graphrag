@@ -1,0 +1,22 @@
+# Download-free smoke-test configuration: deterministic hashing embedder, no reranker.
+# Retrieval quality is lexical-ish; use it to verify plumbing, not to judge quality.
+#   uv run brain --config config/settings.smoke.yaml ingest sample_corpus
+data_dir: .brain-smoke
+ontology: config/ontology.yaml
+
+llm:
+  base_url: http://localhost:11434
+  model: llama3.1:8b
+  num_ctx: 8192
+
+embedding:
+  backend: hash
+  model: hash-512
+  hash_dim: 512
+
+rerank:
+  backend: none
+
+extraction:
+  gleaning: false
+  workers: 2

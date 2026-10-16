@@ -1,0 +1,49 @@
+# The installable package (distribution "second-brain-core", import name "brain", CLI "brain").
+#
+# It lives in its own tiny project so the workspace root can install it NON-editable. An editable
+# install works through a .pth file in the venv, and Python >= 3.12.? silently skips .pth files
+# carrying the macOS "hidden" flag, which iCloud Drive sets on everything inside dot-directories
+# such as .venv when the project sits in ~/Documents. That made `uv run brain` die with
+# "No module named 'brain'" a few minutes after `uv sync`. A regular install has no .pth to lose.
+#
+# `cache-keys` makes uv rebuild and reinstall the package when its sources change, so editing code
+# and re-running `uv run brain ...` behaves like an editable install.
+[project]
+name = "second-brain-core"
+version = "0.1.0"
+description = "Adaptive personal knowledge-graph RAG: local-first hybrid vector + graph retrieval"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "sqlite-vec>=0.1.6",
+    "python-igraph>=0.11",
+    "pypdf>=4.0",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+# Layout-aware PDF parsing (pulls in torch; large). Without it PDFs fall back to pypdf.
+pdf = ["docling>=2.0"]
+# Local sentence-transformers embeddings + cross-encoder reranker (pulls in torch).
+ml = ["sentence-transformers>=3.0"]
+
+[project.scripts]
+brain = "brain.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["brain"]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "brain/**/*.py" },
+    { file = "brain/**/*.md" },
+    { file = "brain/**/*.sql" },
+]
